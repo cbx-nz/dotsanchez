@@ -1,0 +1,6 @@
+.venv/
+prompt.txt
+ExampleVideo.mp4
+decoded.mp4
+output.sanchez
+sanchez/__pycache__/
