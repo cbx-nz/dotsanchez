@@ -29,8 +29,8 @@ eJzLzklMT8...base64 compressed data...
 # Install dependencies
 pip install -r requirements.txt
 
-# Also need ffmpeg for audio extraction/muxing
-# Windows: choco install ffmpeg
+# Also need ffmpeg for audio extraction/muxing either from website or;
+# Windows: choco install ffmpeg / winget install ffmpeg
 # Mac: brew install ffmpeg
 # Linux: sudo apt install ffmpeg
 ```

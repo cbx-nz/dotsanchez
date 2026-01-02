@@ -4,3 +4,4 @@ prompt.txt
 *.sanchez
 sanchez/__pycache__/
 test_output/
+*.mp3
