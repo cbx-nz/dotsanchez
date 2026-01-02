@@ -1,6 +1,6 @@
 .venv/
 prompt.txt
-ExampleVideo.mp4
-decoded.mp4
-output.sanchez
+*.mp4
+*.sanchez
 sanchez/__pycache__/
+test_output/
