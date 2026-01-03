@@ -95,19 +95,24 @@ class SanchezPlayer:
         self.sanchez = SanchezFile.load(str(sanchez_path))
         print(f"  {self.sanchez.config.width}x{self.sanchez.config.height}, {self.sanchez.frame_count} frames")
         
-        # Find audio file
+        # Find audio file - check for multiple audio formats
         if audio_path is None:
-            auto_audio = sanchez_path.with_suffix('.mp3')
-            if auto_audio.exists():
-                audio_path = str(auto_audio)
-                print(f"  Audio: {audio_path}")
+            # Check for common audio formats with same base name
+            audio_extensions = ['.mp3', '.wav', '.ogg', '.flac']
+            for ext in audio_extensions:
+                auto_audio = sanchez_path.with_suffix(ext)
+                if auto_audio.exists():
+                    audio_path = str(auto_audio)
+                    print(f"  Audio found: {audio_path}")
+                    break
         
         self.audio_path = audio_path
         self.current_frame = min(start_frame, self.sanchez.frame_count - 1)
         
         # Initialize pygame
         pygame.init()
-        pygame.mixer.init()
+        # Initialize mixer with good settings for audio playback
+        pygame.mixer.init(frequency=44100, size=-16, channels=2, buffer=2048)
         
         # Calculate display size
         display_width = int(self.sanchez.config.width * self.scale)
@@ -126,12 +131,18 @@ class SanchezPlayer:
         fps = self.sanchez.config.fps
         
         # Load audio if available
+        audio_loaded = False
         if self.audio_path and os.path.exists(self.audio_path):
             try:
                 pygame.mixer.music.load(self.audio_path)
+                audio_loaded = True
+                print(f"  Audio loaded successfully: {self.audio_path}")
             except Exception as e:
                 print(f"Warning: Could not load audio: {e}")
                 self.audio_path = None
+        elif self.audio_path:
+            print(f"Warning: Audio file not found: {self.audio_path}")
+            self.audio_path = None
         
         # Start preloading frames
         self._start_preload()
@@ -140,12 +151,17 @@ class SanchezPlayer:
         self.playing = True
         self.running = True
         
-        if self.audio_path:
-            pygame.mixer.music.play()
-            # Seek to start position if not starting from beginning
-            if self.current_frame > 0:
-                start_time = self.current_frame / fps
-                pygame.mixer.music.set_pos(start_time)
+        # Start audio playback
+        if self.audio_path and audio_loaded:
+            try:
+                pygame.mixer.music.play()
+                # Seek to start position if not starting from beginning
+                if self.current_frame > 0:
+                    start_time = self.current_frame / fps
+                    pygame.mixer.music.set_pos(start_time)
+                print("  Audio playback started")
+            except Exception as e:
+                print(f"Warning: Could not start audio playback: {e}")
         
         # Initialize font for info overlay
         try:
@@ -224,7 +240,11 @@ class SanchezPlayer:
         
         finally:
             self._stop_preload_thread()
-            pygame.mixer.music.stop()
+            try:
+                pygame.mixer.music.stop()
+                pygame.mixer.quit()
+            except:
+                pass
             pygame.quit()
     
     def _handle_key(self, key: int, fps: int) -> None:
